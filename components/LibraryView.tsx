@@ -124,13 +124,13 @@ export const LibraryView: React.FC = () => {
       {/* Search & Filter */}
       <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white shadow-sm mb-8 sticky top-0 z-20">
         <div className="relative mb-6">
-           <Search className="absolute left-4 top-3.5 text-lavender-400" size={20} />
+           <Search className="absolute left-4 top-3.5 text-slate-400" size={20} />
            <input 
              type="text" 
              placeholder="搜索梦境符号 (如：飞翔, 掉牙...)"
              value={searchTerm}
              onChange={(e) => setSearchTerm(e.target.value)}
-             className="w-full pl-12 pr-4 py-3 rounded-2xl bg-white border border-lavender-100 focus:outline-none focus:ring-2 focus:ring-lavender-200 font-sans text-ink-700 placeholder-ink-300 transition-all"
+             className="w-full pl-12 pr-4 py-3 rounded-2xl bg-white border border-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 font-sans text-ink-700 placeholder-ink-300 transition-all"
            />
         </div>
 
@@ -141,8 +141,8 @@ export const LibraryView: React.FC = () => {
                     onClick={() => setSelectedCategory(cat.id)}
                     className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all font-sans
                         ${selectedCategory === cat.id 
-                            ? 'bg-lavender-500 text-white shadow-md transform scale-105' 
-                            : 'bg-white text-ink-500 border border-lavender-100 hover:bg-lavender-50'
+                            ? 'bg-slate-700 text-white shadow-md transform scale-105' 
+                            : 'bg-white text-ink-500 border border-slate-100 hover:bg-slate-50'
                         }
                     `}
                 >
@@ -161,14 +161,14 @@ export const LibraryView: React.FC = () => {
                 onClick={() => setExpandedId(expandedId === symbol.id ? null : symbol.id)}
                 className={`
                     bg-white/80 backdrop-blur-sm border border-white rounded-3xl p-6 cursor-pointer transition-all duration-300 group
-                    ${expandedId === symbol.id ? 'row-span-2 shadow-lg ring-2 ring-lavender-100 bg-white' : 'hover:shadow-md hover:-translate-y-1'}
+                    ${expandedId === symbol.id ? 'row-span-2 shadow-lg ring-2 ring-slate-100 bg-white' : 'hover:shadow-md hover:-translate-y-1'}
                 `}
             >
                 <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3">
                         <div className={`
                             p-3 rounded-2xl transition-colors
-                            ${expandedId === symbol.id ? 'bg-lavender-500 text-white' : 'bg-lavender-50 text-lavender-500 group-hover:bg-lavender-100'}
+                            ${expandedId === symbol.id ? 'bg-slate-700 text-white' : 'bg-slate-50 text-slate-600 group-hover:bg-slate-100'}
                         `}>
                             {symbol.category === 'nature' && <Cloud size={24} />}
                             {symbol.category === 'object' && <Key size={24} />}
@@ -183,7 +183,7 @@ export const LibraryView: React.FC = () => {
                             </span>
                         </div>
                     </div>
-                    <div className={`text-lavender-300 transition-transform duration-300 ${expandedId === symbol.id ? 'rotate-180' : ''}`}>
+                    <div className={`text-slate-300 transition-transform duration-300 ${expandedId === symbol.id ? 'rotate-180' : ''}`}>
                         <Anchor size={20} className={expandedId === symbol.id ? 'opacity-0' : 'opacity-100'} /> 
                     </div>
                 </div>
@@ -195,10 +195,10 @@ export const LibraryView: React.FC = () => {
                 {/* Expanded Content */}
                 <div className={`
                     overflow-hidden transition-all duration-500 ease-in-out
-                    ${expandedId === symbol.id ? 'max-h-[500px] opacity-100 mt-4 pt-4 border-t border-dashed border-lavender-100' : 'max-h-0 opacity-0'}
+                    ${expandedId === symbol.id ? 'max-h-[500px] opacity-100 mt-4 pt-4 border-t border-dashed border-slate-100' : 'max-h-0 opacity-0'}
                 `}>
                     <div className="mb-4">
-                        <h4 className="text-sm font-bold text-lavender-600 mb-2 font-hand flex items-center gap-2">
+                        <h4 className="text-sm font-bold text-slate-600 mb-2 font-hand flex items-center gap-2">
                              <BookOpen size={14}/> 通用解析
                         </h4>
                         <p className="text-ink-700 text-sm leading-relaxed font-sans text-justify">
@@ -217,7 +217,7 @@ export const LibraryView: React.FC = () => {
                 </div>
                 
                 {expandedId !== symbol.id && (
-                     <div className="text-center text-xs text-lavender-400 font-sans mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                     <div className="text-center text-xs text-slate-400 font-sans mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         点击查看深度解读
                      </div>
                 )}

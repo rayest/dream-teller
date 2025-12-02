@@ -96,8 +96,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ dreams }) => {
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
             <defs>
               <linearGradient id="intensityGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.4" />
-                <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0" />
+                <stop offset="0%" stopColor="#d97706" stopOpacity="0.3" /> {/* Amber */}
+                <stop offset="100%" stopColor="#d97706" stopOpacity="0" />
               </linearGradient>
             </defs>
 
@@ -115,7 +115,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ dreams }) => {
             {/* Line Path */}
             <polyline 
                 fill="none" 
-                stroke="#8b5cf6" 
+                stroke="#d97706" 
                 strokeWidth="0.8" 
                 points={pointsString} 
                 strokeLinecap="round"
@@ -153,8 +153,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ dreams }) => {
                     className={`
                       stroke-[0.5] transition-all duration-300 pointer-events-none
                       ${tooltip && tooltip.date === p.data.date 
-                        ? 'fill-lavender-600 stroke-white' 
-                        : 'fill-white stroke-lavender-500'}
+                        ? 'fill-amber-600 stroke-white' 
+                        : 'fill-white stroke-amber-500'}
                     `}
                  />
                </g>
@@ -171,10 +171,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ dreams }) => {
               transform: 'translate(-50%, -115%)' 
             }}
           >
-            <div className="bg-white/90 backdrop-blur-md border border-lavender-100 shadow-[0_4px_20px_rgba(139,92,246,0.15)] rounded-xl p-3 w-48 text-left animate-fade-in">
-               <div className="text-xs text-lavender-500 font-bold mb-1 font-sans flex justify-between">
+            <div className="bg-white/90 backdrop-blur-md border border-amber-100 shadow-[0_4px_20px_rgba(217,119,6,0.15)] rounded-xl p-3 w-48 text-left animate-fade-in">
+               <div className="text-xs text-amber-600 font-bold mb-1 font-sans flex justify-between">
                  <span>{tooltip.date}</span>
-                 <span className="bg-lavender-100 px-1.5 py-0.5 rounded text-lavender-700">强度 {tooltip.intensity}</span>
+                 <span className="bg-amber-100 px-1.5 py-0.5 rounded text-amber-700">强度 {tooltip.intensity}</span>
                </div>
                <div className="font-hand text-ink-800 text-lg leading-tight mb-1 truncate">
                  {tooltip.title}
@@ -207,7 +207,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ dreams }) => {
         {/* 1. Mood Flow (Timeline) */}
         <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white shadow-sm md:col-span-2">
             <div className="flex items-center gap-2 mb-6">
-                <div className="p-2 bg-lavender-50 rounded-xl text-lavender-500">
+                <div className="p-2 bg-amber-50 rounded-xl text-amber-500">
                     <Activity size={20} />
                 </div>
                 <div>
@@ -218,7 +218,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ dreams }) => {
             
             {renderLineChart()}
             
-            <div className="flex justify-between text-xs text-ink-400 mt-2 px-2 font-sans border-t border-dashed border-gray-100 pt-2">
+            <div className="flex justify-between text-xs text-ink-400 mt-2 px-2 font-sans border-t border-dashed border-slate-100 pt-2">
                 <span>最早记录</span>
                 <span>最近记录</span>
             </div>
@@ -241,7 +241,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ dreams }) => {
                             key={word} 
                             style={{ fontSize: `${size}rem`, opacity }}
                             className={`font-hand cursor-default hover:scale-110 transition-transform duration-300 select-none ${
-                                idx % 3 === 0 ? 'text-indigo-500' : idx % 3 === 1 ? 'text-rose-500' : 'text-emerald-500'
+                                idx % 3 === 0 ? 'text-slate-600' : idx % 3 === 1 ? 'text-amber-600' : 'text-sky-600'
                             }`}
                         >
                             {word}
@@ -253,10 +253,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ dreams }) => {
             </div>
         </div>
 
-        {/* 3. Emotional Spectrum */}
+        {/* 3. Emotional Spectrum - Replaced Rose with Sky */}
         <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white shadow-sm">
              <div className="flex items-center gap-2 mb-6">
-                <div className="p-2 bg-rose-50 rounded-xl text-rose-500">
+                <div className="p-2 bg-sky-50 rounded-xl text-sky-500">
                     <PieChart size={20} />
                 </div>
                 <h2 className="text-xl font-hand font-bold text-ink-800">情绪光谱</h2>
@@ -270,9 +270,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ dreams }) => {
                                 <span>{emotion}</span>
                                 <span className="font-bold text-ink-400 text-xs">{percentage}%</span>
                             </div>
-                            <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                            <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                                 <div 
-                                    className="h-full bg-rose-300 rounded-full group-hover:bg-rose-400 transition-colors"
+                                    className="h-full bg-sky-300 rounded-full group-hover:bg-sky-400 transition-colors"
                                     style={{ width: `${percentage}%` }}
                                 ></div>
                             </div>
@@ -285,24 +285,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ dreams }) => {
         </div>
 
         {/* 4. Stats Summary */}
-        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl p-6 border border-indigo-100 shadow-sm md:col-span-2 flex justify-around items-center text-center">
+        <div className="bg-gradient-to-br from-slate-50 to-amber-50 rounded-3xl p-6 border border-slate-100 shadow-sm md:col-span-2 flex justify-around items-center text-center">
              <div className="hover:scale-105 transition-transform duration-300">
-                 <div className="text-4xl font-hand font-bold text-indigo-600 drop-shadow-sm">{dreams.length}</div>
-                 <div className="text-xs text-indigo-400 font-sans uppercase tracking-wider mt-1 font-bold">记录总数</div>
+                 <div className="text-4xl font-hand font-bold text-slate-700 drop-shadow-sm">{dreams.length}</div>
+                 <div className="text-xs text-slate-400 font-sans uppercase tracking-wider mt-1 font-bold">记录总数</div>
              </div>
-             <div className="w-px h-12 bg-indigo-200/50"></div>
+             <div className="w-px h-12 bg-slate-200/50"></div>
              <div className="hover:scale-105 transition-transform duration-300">
-                 <div className="text-4xl font-hand font-bold text-rose-600 drop-shadow-sm">
+                 <div className="text-4xl font-hand font-bold text-amber-600 drop-shadow-sm">
                     {Math.round(stats.chronoDreams.reduce((acc, curr) => acc + (curr.analysis?.emotionalIntensity || 0), 0) / (stats.chronoDreams.length || 1))}
                  </div>
-                 <div className="text-xs text-rose-400 font-sans uppercase tracking-wider mt-1 font-bold">平均强度</div>
+                 <div className="text-xs text-amber-400 font-sans uppercase tracking-wider mt-1 font-bold">平均强度</div>
              </div>
-             <div className="w-px h-12 bg-indigo-200/50"></div>
+             <div className="w-px h-12 bg-slate-200/50"></div>
              <div className="hover:scale-105 transition-transform duration-300">
-                 <div className="text-4xl font-hand font-bold text-emerald-600 drop-shadow-sm">
+                 <div className="text-4xl font-hand font-bold text-sky-600 drop-shadow-sm">
                     {stats.keywords.length}
                  </div>
-                 <div className="text-xs text-emerald-400 font-sans uppercase tracking-wider mt-1 font-bold">独特意象</div>
+                 <div className="text-xs text-sky-400 font-sans uppercase tracking-wider mt-1 font-bold">独特意象</div>
              </div>
         </div>
 

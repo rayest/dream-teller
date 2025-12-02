@@ -15,19 +15,19 @@ export const DreamCard: React.FC<DreamCardProps> = ({ dream, onClick, onDelete, 
     <div className="relative pl-8 sm:pl-10">
       {/* Timeline Line */}
       {!isLast && (
-        <div className="absolute left-[11px] sm:left-[19px] top-8 bottom-[-20px] w-0.5 bg-lavender-200/60 z-0"></div>
+        <div className="absolute left-[11px] sm:left-[19px] top-8 bottom-[-20px] w-0.5 bg-slate-200/60 z-0"></div>
       )}
       
       {/* Timeline Dot */}
       <div className={`absolute left-0 sm:left-2 top-8 w-6 h-6 rounded-full border-4 z-10 transition-colors duration-300 ${
-        isSelected ? 'bg-lavender-500 border-lavender-100' : 'bg-white border-lavender-200'
+        isSelected ? 'bg-slate-600 border-slate-200' : 'bg-white border-slate-200'
       }`}></div>
 
       <div 
         onClick={() => onClick(dream)}
         className={`group relative p-5 rounded-2xl cursor-pointer transition-all duration-500 mb-6 border
           ${isSelected 
-            ? 'bg-white border-lavender-200 shadow-[0_4px_20px_rgba(139,92,246,0.15)] scale-[1.02]' 
+            ? 'bg-white border-slate-300 shadow-[0_4px_20px_rgba(30,41,59,0.08)] scale-[1.02]' 
             : 'bg-white/60 border-transparent hover:bg-white hover:shadow-lg hover:scale-[1.01]'
           }`}
       >
@@ -37,14 +37,14 @@ export const DreamCard: React.FC<DreamCardProps> = ({ dream, onClick, onDelete, 
           </h3>
           <div className="flex items-center gap-2 shrink-0">
             {dream.analysis && (
-              <Moon size={16} className="text-lavender-500 mt-0.5" />
+              <Moon size={16} className="text-amber-500 mt-0.5" />
             )}
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete(dream.id);
               }}
-              className="text-ink-400 hover:text-rose-400 transition-colors p-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
+              className="text-ink-400 hover:text-red-400 transition-colors p-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
               title="删除记录"
               aria-label="删除记录"
             >
@@ -54,7 +54,7 @@ export const DreamCard: React.FC<DreamCardProps> = ({ dream, onClick, onDelete, 
         </div>
 
         {dream.analysis?.summary && (
-          <p className="text-lavender-600/90 text-sm line-clamp-2 mb-2 font-hand leading-relaxed tracking-wide">
+          <p className="text-slate-600/90 text-sm line-clamp-2 mb-2 font-hand leading-relaxed tracking-wide">
              {dream.analysis.summary}
           </p>
         )}

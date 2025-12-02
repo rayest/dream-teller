@@ -16,8 +16,6 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isGeneratingCreative, setIsGeneratingCreative] = useState(false);
-  const [selectedStyle, setSelectedStyle] = useState<string>('超现实主义');
-  const [customStyle, setCustomStyle] = useState('');
   
   // Audio Engine Refs
   const synthRef = useRef<DreamSynthesizer | null>(null);
@@ -36,12 +34,12 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
   const { title, summary, interpretation, emotionalState, psychologicalMeaning, guidance, keywords, dominantEmotion, emotionalIntensity, followUpQuestions } = dream.analysis;
 
   const handleShare = async () => {
-    const shareText = `【DreamWeaver 梦境解析】\n\n🌙 ${title}\n\n📜 摘要：\n${summary}\n\n🧠 解析：\n${interpretation}\n\n💡 建议：\n${guidance}\n\n✨ 来自 DreamWeaver 梦境日记`;
+    const shareText = `【梦境解析】\n\n🌙 ${title}\n\n📜 摘要：\n${summary}\n\n🧠 解析：\n${interpretation}\n\n💡 建议：\n${guidance}\n\n✨ 来自 梦境日记`;
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `DreamWeaver: ${title}`,
+          title: `梦境日记: ${title}`,
           text: shareText,
         });
       } catch (error) {
@@ -64,10 +62,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
     
     setIsGeneratingMusic(true);
     try {
-      // Step 1: Get parameters from AI
       const params = await generateSoundscapeParams(dream.analysis);
-      
-      // Step 2: Save to dream entry
       onUpdateDream(dream.id, { soundscapeParams: params });
     } catch (error) {
       console.error(error);
@@ -80,7 +75,8 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
   const handleGenerateImage = async () => {
     if (!dream.analysis || !onUpdateDream) return;
 
-    const styleToUse = customStyle.trim() || selectedStyle;
+    // System automatically sets style to Surrealism
+    const styleToUse = "超现实主义 (Surrealism)";
     
     setIsGeneratingImage(true);
     try {
@@ -89,7 +85,6 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
             generatedImage: imageBase64,
             artStyle: styleToUse
         });
-        setCustomStyle(''); // Clear custom input after success
     } catch (error) {
         console.error(error);
         alert("无法生成图像，请检查 API 密钥权限或稍后再试。");
@@ -130,29 +125,29 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
     switch (texture) {
         case 'ethereal':
             return {
-                bg: 'bg-gradient-to-br from-indigo-200 via-purple-100 to-sky-100',
-                text: 'text-indigo-900',
+                bg: 'bg-gradient-to-br from-cyan-100 via-sky-100 to-blue-50',
+                text: 'text-cyan-900',
                 accent: 'bg-white/40',
-                iconColor: 'text-indigo-600',
-                particle: 'bg-indigo-300',
+                iconColor: 'text-cyan-600',
+                particle: 'bg-cyan-300',
                 border: 'border-white/50'
             };
         case 'warm':
             return {
-                bg: 'bg-gradient-to-br from-orange-100 via-amber-100 to-rose-100',
-                text: 'text-rose-900',
+                bg: 'bg-gradient-to-br from-orange-100 via-amber-100 to-yellow-50',
+                text: 'text-amber-900',
                 accent: 'bg-white/40',
-                iconColor: 'text-rose-600',
-                particle: 'bg-rose-300',
+                iconColor: 'text-amber-600',
+                particle: 'bg-orange-300',
                 border: 'border-white/50'
             };
         case 'dark':
             return {
-                bg: 'bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900',
-                text: 'text-indigo-100',
+                bg: 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950',
+                text: 'text-slate-100',
                 accent: 'bg-white/10',
-                iconColor: 'text-indigo-300',
-                particle: 'bg-indigo-400',
+                iconColor: 'text-slate-300',
+                particle: 'bg-slate-400',
                 border: 'border-white/10'
             };
         case 'gritty':
@@ -180,32 +175,30 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
     ? getVisualizerStyle(dream.soundscapeParams.texture)
     : getVisualizerStyle('default');
 
-  const artStyles = ["超现实主义", "水墨风", "印象派", "赛博朋克", "吉卜力风格", "抽象表现主义", "浮世绘"];
-
   return (
     <div className="animate-fade-in h-full overflow-y-auto pr-2 pb-10 custom-scrollbar">
       <button 
         onClick={onBack}
-        className="md:hidden mb-4 text-sm text-ink-500 hover:text-lavender-600 flex items-center transition-colors font-sans"
+        className="md:hidden mb-4 text-sm text-ink-500 hover:text-slate-600 flex items-center transition-colors font-sans"
       >
         ← 返回列表
       </button>
 
       {/* Header Section */}
-      <div className="bg-gradient-to-br from-white to-lavender-50 rounded-3xl p-6 md:p-8 border border-white/60 shadow-sm mb-6 relative overflow-hidden group/header">
+      <div className="bg-gradient-to-br from-white to-slate-50 rounded-3xl p-6 md:p-8 border border-white/60 shadow-sm mb-6 relative overflow-hidden group/header">
         {/* Share Button */}
         <button
           onClick={handleShare}
-          className="absolute top-4 right-4 md:top-6 md:right-6 p-2.5 rounded-full bg-white/60 hover:bg-white text-ink-400 hover:text-lavender-600 transition-all duration-300 shadow-sm z-20 backdrop-blur-sm group-hover/header:opacity-100"
+          className="absolute top-4 right-4 md:top-6 md:right-6 p-2.5 rounded-full bg-white/60 hover:bg-white text-ink-400 hover:text-slate-600 transition-all duration-300 shadow-sm z-20 backdrop-blur-sm group-hover/header:opacity-100"
           title="分享梦境"
         >
           {isCopied ? <Check size={20} className="text-emerald-500" /> : <Share2 size={20} />}
         </button>
 
         {/* Decorative background blob */}
-        <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-200/20 rounded-full blur-3xl"></div>
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-slate-200/20 rounded-full blur-3xl"></div>
         
-        <div className="flex items-center gap-2 text-lavender-500 mb-3 text-sm uppercase tracking-widest font-bold">
+        <div className="flex items-center gap-2 text-slate-500 mb-3 text-sm uppercase tracking-widest font-bold">
            <Sparkles size={16} /> 
            <span className="font-sans">梦境解析</span>
         </div>
@@ -213,23 +206,23 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
         
         <div className="flex flex-wrap gap-2 mb-6 relative z-10">
           {keywords.map((keyword, idx) => (
-            <span key={idx} className="px-4 py-1.5 rounded-full bg-white text-sm text-ink-600 border border-lavender-100 shadow-sm flex items-center font-hand">
-              <Tag size={12} className="mr-1.5 text-lavender-400" /> {keyword}
+            <span key={idx} className="px-4 py-1.5 rounded-full bg-white text-sm text-ink-600 border border-slate-100 shadow-sm flex items-center font-hand">
+              <Tag size={12} className="mr-1.5 text-slate-400" /> {keyword}
             </span>
           ))}
         </div>
         
-        <div className="bg-white/60 rounded-2xl p-6 text-ink-600 italic border-l-4 border-lavender-300 font-sans leading-loose relative z-10">
+        <div className="bg-white/60 rounded-2xl p-6 text-ink-600 italic border-l-4 border-slate-300 font-sans leading-loose relative z-10">
           "{summary}"
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
-        {/* Recall Guide (New Section) */}
+        {/* Recall Guide */}
         {followUpQuestions && followUpQuestions.length > 0 && (
             <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white shadow-sm hover:shadow-md transition-all duration-500 md:col-span-2">
-                <div className="flex items-center gap-3 mb-4 text-sky-500">
+                <div className="flex items-center gap-3 mb-4 text-sky-600">
                     <div className="p-2 bg-sky-50 rounded-xl">
                         <HelpCircle size={24} />
                     </div>
@@ -249,10 +242,10 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
             </div>
         )}
 
-        {/* Interpretation */}
+        {/* Interpretation - Slate Theme */}
         <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white shadow-sm hover:shadow-md transition-all duration-500 group">
-          <div className="flex items-center gap-3 mb-4 text-indigo-400 group-hover:scale-105 transition-transform origin-left">
-            <div className="p-2 bg-indigo-50 rounded-xl">
+          <div className="flex items-center gap-3 mb-4 text-slate-500 group-hover:scale-105 transition-transform origin-left">
+            <div className="p-2 bg-slate-100 rounded-xl">
                <Brain size={24} />
             </div>
             <h2 className="text-2xl font-hand font-bold text-ink-800">深度解析</h2>
@@ -260,22 +253,22 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
           <p className="text-ink-600 leading-relaxed whitespace-pre-line font-sans">{interpretation}</p>
         </div>
 
-        {/* Psychological Meaning */}
+        {/* Psychological Meaning - Sky/Slate Theme (Replaced Purple) */}
         <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white shadow-sm hover:shadow-md transition-all duration-500 group relative z-10">
-          <div className="flex items-start gap-3 mb-4 text-purple-400 group-hover:scale-105 transition-transform origin-left">
-            <div className="p-2 bg-purple-50 rounded-xl mt-1">
+          <div className="flex items-start gap-3 mb-4 text-sky-600 group-hover:scale-105 transition-transform origin-left">
+            <div className="p-2 bg-sky-50 rounded-xl mt-1">
               <Lightbulb size={24} />
             </div>
             <div>
               <h2 className="text-2xl font-hand font-bold text-ink-800 leading-none mb-1.5">潜意识讯息</h2>
               <div className="flex items-center gap-1.5 relative group/tooltip cursor-help w-fit">
-                 <span className="text-xs font-sans font-bold text-purple-400/80 uppercase tracking-wider">分析师的洞察</span>
-                 <Info size={13} className="text-purple-300" />
+                 <span className="text-xs font-sans font-bold text-sky-500/80 uppercase tracking-wider">分析师的洞察</span>
+                 <Info size={13} className="text-sky-300" />
                  
                  {/* Tooltip */}
-                 <div className="absolute bottom-full left-0 mb-2 w-64 p-3 bg-ink-800/90 backdrop-blur-sm text-white text-xs rounded-xl shadow-xl opacity-0 translate-y-2 group-hover/tooltip:opacity-100 group-hover/tooltip:translate-y-0 transition-all duration-300 pointer-events-none z-50 font-sans leading-relaxed border border-white/10">
+                 <div className="absolute bottom-full left-0 mb-2 w-64 p-3 bg-slate-800/95 backdrop-blur-sm text-white text-xs rounded-xl shadow-xl opacity-0 translate-y-2 group-hover/tooltip:opacity-100 group-hover/tooltip:translate-y-0 transition-all duration-300 pointer-events-none z-50 font-sans leading-relaxed border border-white/10">
                    此板块尝试解读梦境表象之下的深层心理活动，包括被压抑的愿望、未解决的冲突或内心成长的指引。
-                   <div className="absolute top-full left-6 -mt-[1px] border-4 border-transparent border-t-ink-800/90"></div>
+                   <div className="absolute top-full left-6 -mt-[1px] border-4 border-transparent border-t-slate-800/95"></div>
                  </div>
               </div>
             </div>
@@ -283,20 +276,20 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
           <p className="text-ink-600 leading-relaxed whitespace-pre-line font-sans">{psychologicalMeaning}</p>
         </div>
 
-        {/* Emotional State */}
+        {/* Emotional State - Amber Theme */}
         <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white shadow-sm hover:shadow-md transition-all duration-500 group">
-          <div className="flex items-center gap-3 mb-4 text-rose-400 group-hover:scale-105 transition-transform origin-left">
-            <div className="p-2 bg-rose-50 rounded-xl">
+          <div className="flex items-center gap-3 mb-4 text-amber-500 group-hover:scale-105 transition-transform origin-left">
+            <div className="p-2 bg-amber-50 rounded-xl">
               <HeartHandshake size={24} />
             </div>
             <h2 className="text-2xl font-hand font-bold text-ink-800">情绪图谱</h2>
           </div>
           
-          <div className="mb-6 bg-rose-50/50 rounded-2xl p-4 border border-rose-100/50">
+          <div className="mb-6 bg-amber-50/50 rounded-2xl p-4 border border-amber-100/50">
             {dominantEmotion && (
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm text-ink-500 font-sans font-semibold">主导情绪</span>
-                <span className="px-3 py-1 bg-rose-100 text-rose-600 rounded-lg text-sm font-hand font-bold">
+                <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-lg text-sm font-hand font-bold">
                   {dominantEmotion}
                 </span>
               </div>
@@ -308,9 +301,9 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
                   <span>平静</span>
                   <span>强烈</span>
                 </div>
-                <div className="h-3 w-full bg-rose-100/50 rounded-full overflow-hidden">
+                <div className="h-3 w-full bg-amber-100/50 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-gradient-to-r from-rose-300 to-rose-400 rounded-full transition-all duration-1000 ease-out"
+                    className="h-full bg-gradient-to-r from-amber-300 to-amber-500 rounded-full transition-all duration-1000 ease-out"
                     style={{ width: `${emotionalIntensity * 10}%` }}
                   />
                 </div>
@@ -321,23 +314,23 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
           <p className="text-ink-600 leading-relaxed whitespace-pre-line font-sans">{emotionalState}</p>
         </div>
 
-        {/* Creative Studio (New Section) */}
+        {/* Creative Studio - Stone/Amber Theme */}
         <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white shadow-sm hover:shadow-md transition-all duration-500 group">
-            <div className="flex items-center gap-3 mb-4 text-amber-500 group-hover:scale-105 transition-transform origin-left">
-                <div className="p-2 bg-amber-50 rounded-xl">
+            <div className="flex items-center gap-3 mb-4 text-stone-500 group-hover:scale-105 transition-transform origin-left">
+                <div className="p-2 bg-stone-100 rounded-xl">
                     <Feather size={24} />
                 </div>
                 <h2 className="text-2xl font-hand font-bold text-ink-800">创意工坊</h2>
             </div>
             
             {!dream.creativeWriting ? (
-                <div className="text-center py-6 bg-amber-50/30 rounded-2xl border border-amber-100/50">
+                <div className="text-center py-6 bg-stone-50/50 rounded-2xl border border-stone-100">
                     <p className="text-ink-500 font-sans text-sm mb-4 px-4">将零散的梦境碎片，编织成文学作品。</p>
                     <div className="flex gap-3 justify-center">
                         <button 
                             onClick={() => handleGenerateCreative('story')}
                             disabled={isGeneratingCreative}
-                            className="px-4 py-2 bg-white text-ink-700 border border-amber-200 rounded-xl hover:bg-amber-100 hover:text-amber-800 transition-colors flex items-center gap-2 text-sm font-bold shadow-sm"
+                            className="px-4 py-2 bg-white text-ink-700 border border-stone-200 rounded-xl hover:bg-stone-100 hover:text-stone-800 transition-colors flex items-center gap-2 text-sm font-bold shadow-sm"
                         >
                             {isGeneratingCreative ? <Loader2 size={16} className="animate-spin"/> : <BookOpen size={16} />}
                             编织故事
@@ -345,7 +338,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
                         <button 
                             onClick={() => handleGenerateCreative('poem')}
                             disabled={isGeneratingCreative}
-                            className="px-4 py-2 bg-white text-ink-700 border border-amber-200 rounded-xl hover:bg-amber-100 hover:text-amber-800 transition-colors flex items-center gap-2 text-sm font-bold shadow-sm"
+                            className="px-4 py-2 bg-white text-ink-700 border border-stone-200 rounded-xl hover:bg-stone-100 hover:text-stone-800 transition-colors flex items-center gap-2 text-sm font-bold shadow-sm"
                         >
                              {isGeneratingCreative ? <Loader2 size={16} className="animate-spin"/> : <Scroll size={16} />}
                             谱写诗歌
@@ -404,7 +397,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
            {!dream.soundscapeParams ? (
               <div className="relative z-10">
                  <p className="opacity-80 text-sm mb-4 font-sans leading-relaxed">
-                   利用 Web Audio API，根据梦境情绪实时合成独一无二的音景。
+                   根据梦境情绪实时合成独一无二的音景。
                  </p>
                  <button 
                    onClick={handleGenerateSoundscape}
@@ -431,8 +424,8 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
                      onClick={togglePlayback}
                      className={`w-full py-4 rounded-xl flex items-center justify-center gap-3 transition-all font-sans font-bold shadow-lg text-white
                        ${isPlaying 
-                         ? 'bg-rose-500/90 hover:bg-rose-600' 
-                         : 'bg-emerald-500/90 hover:bg-emerald-600'}
+                         ? 'bg-amber-500/90 hover:bg-amber-600' 
+                         : 'bg-slate-700/90 hover:bg-slate-600'}
                      `}
                    >
                      {isPlaying ? (
@@ -452,68 +445,38 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
            )}
         </div>
 
-        {/* Dream Gallery */}
+        {/* Dream Gallery - Slate Theme (Replaced Violet) */}
         <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white shadow-sm hover:shadow-md transition-all duration-500 group md:col-span-2">
-            <div className="flex items-center gap-3 mb-4 text-fuchsia-400 group-hover:scale-[1.01] transition-transform origin-left">
-                <div className="p-2 bg-fuchsia-50 rounded-xl">
+            <div className="flex items-center gap-3 mb-4 text-slate-600 group-hover:scale-[1.01] transition-transform origin-left">
+                <div className="p-2 bg-slate-100 rounded-xl">
                     <Palette size={24} />
                 </div>
-                <h2 className="text-2xl font-hand font-bold text-ink-800">梦境画廊 (AI 绘图)</h2>
+                <h2 className="text-2xl font-hand font-bold text-ink-800">梦境画廊 (超现实主义)</h2>
             </div>
 
             {!dream.generatedImage ? (
-                <div className="bg-fuchsia-50/30 rounded-2xl p-6 border border-fuchsia-100/50">
-                    <p className="text-ink-500 font-sans text-sm mb-4">
-                        选择一种艺术风格，AI 将为你描绘梦境的画面。
+                <div className="bg-slate-50/50 rounded-2xl p-6 border border-slate-100/50 flex flex-col items-center text-center">
+                    <p className="text-ink-500 font-sans text-sm mb-4 max-w-md">
+                        AI 将根据梦境关键词，自动为你绘制一幅<b>超现实主义 (Surrealism)</b> 风格的艺术画作，重现潜意识的梦幻场景。
                     </p>
 
-                    {/* Style Selection */}
-                    <div className="flex flex-wrap gap-2 mb-4">
-                        {artStyles.map(style => (
-                            <button
-                                key={style}
-                                onClick={() => {
-                                    setSelectedStyle(style);
-                                    setCustomStyle('');
-                                }}
-                                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border font-sans
-                                    ${selectedStyle === style && !customStyle 
-                                        ? 'bg-fuchsia-500 text-white border-fuchsia-500 shadow-md scale-105' 
-                                        : 'bg-white text-ink-500 border-lavender-100 hover:border-fuchsia-300'}
-                                `}
-                            >
-                                {style}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Custom Style Input & Generate */}
-                    <div className="flex gap-2 mb-2">
-                         <input 
-                            type="text" 
-                            placeholder="或输入自定义风格 (例: 赛博朋克, 梵高...)"
-                            value={customStyle}
-                            onChange={(e) => setCustomStyle(e.target.value)}
-                            className="flex-1 px-4 py-2.5 rounded-xl border border-lavender-200 bg-white/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-fuchsia-200 text-sm font-sans"
-                         />
-                         <button
-                            onClick={handleGenerateImage}
-                            disabled={isGeneratingImage}
-                            className={`px-6 py-2.5 rounded-xl font-bold text-white transition-all flex items-center gap-2 shadow-sm
-                                ${isGeneratingImage 
-                                    ? 'bg-gray-300 cursor-not-allowed' 
-                                    : 'bg-fuchsia-500 hover:bg-fuchsia-600 hover:shadow-md'}
-                            `}
-                         >
-                            {isGeneratingImage ? <Loader2 size={18} className="animate-spin" /> : <Wand2 size={18} />}
-                            <span className="hidden sm:inline">生成</span>
-                         </button>
-                    </div>
+                    <button
+                        onClick={handleGenerateImage}
+                        disabled={isGeneratingImage}
+                        className={`px-8 py-3 rounded-xl font-bold text-white transition-all flex items-center gap-2 shadow-lg shadow-slate-200
+                            ${isGeneratingImage 
+                                ? 'bg-slate-300 cursor-not-allowed' 
+                                : 'bg-slate-800 hover:bg-slate-900 hover:scale-105'}
+                        `}
+                    >
+                        {isGeneratingImage ? <Loader2 size={18} className="animate-spin" /> : <Wand2 size={18} />}
+                        <span>揭示梦境映像</span>
+                    </button>
                 </div>
             ) : (
                 <div className="relative animate-fade-in group/image">
                      {/* Image Display */}
-                     <div className="relative rounded-2xl overflow-hidden shadow-lg border-4 border-white bg-white">
+                     <div className="relative rounded-2xl overflow-hidden shadow-xl border-4 border-white bg-white">
                          <img 
                             src={dream.generatedImage} 
                             alt={`Generated dream art: ${dream.analysis.title}`} 
@@ -521,10 +484,10 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
                          />
                          
                          {/* Overlay Info */}
-                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6 text-white translate-y-full group-hover/image:translate-y-0 transition-transform duration-300">
+                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900/80 to-transparent p-6 text-white translate-y-full group-hover/image:translate-y-0 transition-transform duration-300">
                              <div className="flex items-center gap-2 mb-1">
-                                <ImageIcon size={16} className="text-fuchsia-300" />
-                                <span className="text-sm font-bold opacity-90">{dream.artStyle || 'AI Art'}</span>
+                                <ImageIcon size={16} className="text-slate-300" />
+                                <span className="text-sm font-bold opacity-90">{dream.artStyle || 'Surrealism'}</span>
                              </div>
                              <p className="text-xs opacity-80 font-sans line-clamp-2">{dream.analysis.summary}</p>
                          </div>
@@ -533,27 +496,27 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
                      {/* Regenerate Button */}
                      <button
                         onClick={() => onUpdateDream(dream.id, { generatedImage: undefined })}
-                        className="mt-4 text-xs text-ink-400 hover:text-fuchsia-600 flex items-center gap-1 mx-auto transition-colors font-sans"
+                        className="mt-4 text-xs text-ink-400 hover:text-slate-600 flex items-center gap-1 mx-auto transition-colors font-sans"
                      >
                         <Wand2 size={12} />
-                        不满意？重新生成
+                        重新生成
                      </button>
                 </div>
             )}
         </div>
 
-        {/* Guidance */}
-        <div className="bg-gradient-to-br from-sage-50 to-emerald-50/30 rounded-3xl p-6 border border-sage-100 shadow-sm hover:shadow-md transition-all duration-500 relative overflow-hidden group md:col-span-2 lg:col-span-1">
+        {/* Guidance - Sky Theme */}
+        <div className="bg-gradient-to-br from-sky-50 to-cyan-50/30 rounded-3xl p-6 border border-sky-100 shadow-sm hover:shadow-md transition-all duration-500 relative overflow-hidden group md:col-span-2 lg:col-span-1">
           {/* Decorative leaf/nature vibe */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-green-200/10 rounded-full blur-2xl"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-sky-200/10 rounded-full blur-2xl"></div>
 
-          <div className="flex items-center gap-3 mb-4 text-emerald-500 group-hover:scale-105 transition-transform origin-left relative z-10">
-            <div className="p-2 bg-emerald-100/50 rounded-xl">
+          <div className="flex items-center gap-3 mb-4 text-sky-600 group-hover:scale-105 transition-transform origin-left relative z-10">
+            <div className="p-2 bg-sky-100/50 rounded-xl">
                <Sparkles size={24} />
             </div>
-            <h2 className="text-2xl font-hand font-bold text-emerald-800">疗愈建议</h2>
+            <h2 className="text-2xl font-hand font-bold text-sky-800">疗愈建议</h2>
           </div>
-          <p className="text-emerald-800/80 leading-relaxed whitespace-pre-line font-medium font-sans relative z-10">{guidance}</p>
+          <p className="text-sky-800/80 leading-relaxed whitespace-pre-line font-medium font-sans relative z-10">{guidance}</p>
         </div>
       </div>
       

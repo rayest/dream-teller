@@ -1,14 +1,17 @@
-import { GoogleGenAI, Type } from "@google/genai";
-import { DreamAnalysis, MusicRecommendation, SoundscapeParams, CreativeWriting, TarotCard, TarotReadingResult } from "../types";
 
-const apiKey = process.env.API_KEY || '';
-const ai = new GoogleGenAI({ apiKey });
+import { GoogleGenAI, Type } from "@google/genai";
+import { DreamAnalysis, MusicRecommendation, SoundscapeParams, CreativeWriting, TarotCard, TarotReadingResult, TarotSpread, DreamEntry, SecondLifeProfile, SecondLifeEvent, SecondLifeState } from "../types";
+
+const getAiClient = () => {
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    throw new Error("API Key is missing. Please check your environment configuration.");
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
 export const analyzeDream = async (dreamText: string): Promise<DreamAnalysis> => {
-  if (!apiKey) {
-    throw new Error("API Key is missing.");
-  }
-
+  const ai = getAiClient();
   const model = "gemini-2.5-flash"; 
 
   const systemInstruction = `
@@ -93,7 +96,7 @@ export const analyzeDream = async (dreamText: string): Promise<DreamAnalysis> =>
 };
 
 export const suggestDreamMusic = async (analysis: DreamAnalysis): Promise<MusicRecommendation> => {
-  if (!apiKey) throw new Error("API Key is missing.");
+  const ai = getAiClient();
   
   const prompt = `
     基于以下梦境分析，推荐一首最能产生共鸣的背景音乐（纯音乐、古典、氛围音乐或后摇）。
@@ -151,7 +154,7 @@ export const suggestDreamMusic = async (analysis: DreamAnalysis): Promise<MusicR
 // --- New Audio Generation Function ---
 
 export const generateSoundscapeParams = async (analysis: DreamAnalysis): Promise<SoundscapeParams> => {
-    if (!apiKey) throw new Error("API Key is missing.");
+    const ai = getAiClient();
 
     const prompt = `
       根据以下梦境分析，为 Web Audio API 合成器生成音频参数，以创造一个符合梦境氛围的生成式音景（Soundscape）。
@@ -213,26 +216,32 @@ export const generateSoundscapeParams = async (analysis: DreamAnalysis): Promise
 // --- Image Generation Function ---
 
 export const generateDreamImage = async (analysis: DreamAnalysis, style: string): Promise<string> => {
-  if (!apiKey) throw new Error("API Key is missing.");
+  const ai = getAiClient();
 
-  const prompt = `
-    Draw an artistic visualization of the following dream.
+  // Create a structured prompt that is clear for the model
+  const prompt = `Create a high-quality, artistic image based on this dream.
     
-    Style: ${style}
-    Dream Title: ${analysis.title}
-    Visual Imagery: ${analysis.keywords.join(', ')}
-    Atmosphere/Mood: ${analysis.emotionalState}
-    Summary: ${analysis.summary}
-
-    Create a high-quality, evocative image that captures the surreal nature of this dream.
-    Do not include text in the image.
-  `;
+    Art Style: ${style} (Masterpiece quality, highly detailed, evocative)
+    Dream Subject: ${analysis.title}
+    Key Imagery: ${analysis.keywords.join(', ')}
+    Emotional Mood: ${analysis.emotionalState}
+    
+    Context: ${analysis.summary}
+    
+    Requirements: 
+    - No text in image.
+    - Deeply atmospheric and dreamlike.
+    - Focus on the surreal nature of the dream.`;
 
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
-      contents: { parts: [{ text: prompt }] },
-      // Note: responseMimeType and responseSchema are not supported for image generation models
+      contents: prompt,
+      config: {
+        imageConfig: {
+          aspectRatio: "1:1"
+        }
+      }
     });
 
     if (response.candidates && response.candidates[0].content && response.candidates[0].content.parts) {
@@ -245,6 +254,13 @@ export const generateDreamImage = async (analysis: DreamAnalysis, style: string)
       }
     }
     
+    // Check if the model returned text refusal (e.g. safety policy)
+    const textPart = response.candidates?.[0]?.content?.parts?.find(p => p.text);
+    if (textPart?.text) {
+        console.warn("Image generation refusal:", textPart.text);
+        throw new Error(`无法生成图片: ${textPart.text.substring(0, 50)}...`);
+    }
+    
     throw new Error("No image data found in response");
   } catch (error) {
     console.error("Image generation failed:", error);
@@ -255,7 +271,7 @@ export const generateDreamImage = async (analysis: DreamAnalysis, style: string)
 // --- Creative Writing Function ---
 
 export const generateCreativeWriting = async (dream: string, analysis: DreamAnalysis, type: 'story' | 'poem'): Promise<CreativeWriting> => {
-    if (!apiKey) throw new Error("API Key is missing.");
+    const ai = getAiClient();
 
     const prompt = `
       将用户的梦境改写为一篇${type === 'story' ? '微小说（Short Story）' : '现代诗（Poem）'}。
@@ -305,27 +321,31 @@ export const generateCreativeWriting = async (dream: string, analysis: DreamAnal
 
 // --- Tarot Function ---
 
-export const interpretTarotReading = async (question: string, cards: TarotCard[]): Promise<TarotReadingResult> => {
-    if (!apiKey) throw new Error("API Key is missing.");
+export const interpretTarotReading = async (question: string, cards: TarotCard[], spread: TarotSpread): Promise<TarotReadingResult> => {
+    const ai = getAiClient();
 
-    // Format cards for the prompt
+    // Format cards for the prompt with spread position context
     const cardDescriptions = cards.map((card, index) => {
-        const position = index === 0 ? "过去 (Past)" : index === 1 ? "现在 (Present)" : "未来 (Future)";
+        const position = spread.positions[index];
         const orientation = card.isReversed ? "逆位 (Reversed)" : "正位 (Upright)";
-        return `${position}: ${card.name_cn} (${card.name}) - ${orientation}`;
+        return `[位置${index + 1}: ${position.name} - ${position.description}] 抽到的牌: ${card.name_cn} (${card.name}) - ${orientation}`;
     }).join('\n');
 
     const prompt = `
       你是一位精通荣格心理学和神秘学的塔罗牌解读大师。
-      用户提出了一个问题（或者在冥想中）："${question || '（用户未明确问题，请针对当下的生命状态进行解读）'}"
+      用户使用牌阵："${spread.name}"，提出了一个问题（或者在冥想中）："${question || '（用户未明确问题，请针对当下的生命状态进行解读）'}"
       
-      抽出的牌阵（时间流牌阵）：
+      抽到的牌阵如下：
       ${cardDescriptions}
 
-      请进行深度解读：
-      1. Overview: 综合三张牌的能量流动，给出整体基调。
-      2. Past/Present/Future: 分别解读每一张牌在对应位置的含义，结合正逆位。
-      3. Guidance: 给出富有哲理和启发性的行动建议或心理指引。
+      请进行深度解读。
+      请以 JSON 格式输出，包含以下字段：
+      1. overview: 综合所有牌的能量流动，给出整体基调。
+      2. interpretations: 一个数组，针对每个位置进行详细解读。每个元素包含：
+         - positionName: 位置名称 (如"${spread.positions[0].name}")
+         - cardName: 卡牌名称
+         - content: 该位置的深度解读
+      3. guidance: 给出富有哲理和启发性的行动建议或心理指引。
 
       请输出 JSON 格式。
     `;
@@ -340,12 +360,21 @@ export const interpretTarotReading = async (question: string, cards: TarotCard[]
                     type: Type.OBJECT,
                     properties: {
                         overview: { type: Type.STRING },
-                        past: { type: Type.STRING },
-                        present: { type: Type.STRING },
-                        future: { type: Type.STRING },
+                        interpretations: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    positionName: { type: Type.STRING },
+                                    cardName: { type: Type.STRING },
+                                    content: { type: Type.STRING }
+                                },
+                                required: ['positionName', 'cardName', 'content']
+                            }
+                        },
                         guidance: { type: Type.STRING },
                     },
-                    required: ['overview', 'past', 'present', 'future', 'guidance']
+                    required: ['overview', 'interpretations', 'guidance']
                 }
             }
         });
@@ -356,6 +385,111 @@ export const interpretTarotReading = async (question: string, cards: TarotCard[]
         throw new Error("No tarot interpretation response");
     } catch (error) {
         console.error("Tarot interpretation failed:", error);
+        throw error;
+    }
+}
+
+// --- Second Life (RPG) Function ---
+
+export const evolveSecondLife = async (
+    dream: DreamEntry, 
+    currentState: SecondLifeState
+): Promise<{ event: SecondLifeEvent, profileUpdates: Partial<SecondLifeProfile> }> => {
+    const ai = getAiClient();
+
+    const prompt = `
+      你是一款名为“第二人生 (Second Life)”的文字角色扮演游戏的地下城主 (DM)。
+      这个游戏的世界是由用户的梦境构建的平行宇宙。
+      
+      当前角色档案:
+      - 称号: ${currentState.profile.title}
+      - 原型: ${currentState.profile.archetype}
+      - 等级: ${currentState.profile.level}
+      - 属性: 清醒度(Lucidity)=${currentState.profile.attributes.lucidity}, 想象力(Imagination)=${currentState.profile.attributes.imagination}, 韧性(Resilience)=${currentState.profile.attributes.resilience}
+
+      最新梦境:
+      - 标题: ${dream.analysis?.title}
+      - 摘要: ${dream.analysis?.summary}
+      - 关键词: ${dream.analysis?.keywords.join(', ')}
+
+      任务：
+      1. Narrative (剧情): 基于最新梦境，续写“第二人生”的冒险篇章。将梦境中的元素转化为奇幻/科幻/超现实的冒险经历。
+      2. Stats (属性): 根据梦境体现的特质，奖励 1-3 点属性值（如：做了清醒梦增加清醒度，做了噩梦并战胜它增加韧性）。
+      3. Quest (现实任务): 发布一个“同步性任务 (Synchronicity Quest)”。这是一个在现实生活中可以执行的小行动，用于连接梦境与现实（例如：“寻找一块蓝色的石头”或“给久未联系的朋友发消息”）。
+      4. Totem (图腾): 如果梦境中有显著物品，将其转化为一件“图腾”装备。
+
+      请输出 JSON 格式。
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        chapterTitle: { type: Type.STRING },
+                        narrative: { type: Type.STRING },
+                        attributeChanges: {
+                            type: Type.OBJECT,
+                            properties: {
+                                lucidity: { type: Type.INTEGER },
+                                imagination: { type: Type.INTEGER },
+                                resilience: { type: Type.INTEGER }
+                            }
+                        },
+                        realWorldQuest: { type: Type.STRING },
+                        acquiredTotem: {
+                            type: Type.OBJECT,
+                            properties: {
+                                name: { type: Type.STRING },
+                                description: { type: Type.STRING },
+                                rarity: { type: Type.STRING, enum: ['common', 'rare', 'epic', 'legendary'] },
+                                icon: { type: Type.STRING, description: "Suggest a simple emoji for this item" }
+                            }
+                        }
+                    },
+                    required: ['chapterTitle', 'narrative', 'attributeChanges', 'realWorldQuest']
+                }
+            }
+        });
+
+        if (response.text) {
+            const result = JSON.parse(response.text);
+            
+            const event: SecondLifeEvent = {
+                id: Date.now().toString(),
+                date: new Date().toLocaleDateString(),
+                dreamId: dream.id,
+                chapterTitle: result.chapterTitle,
+                narrative: result.narrative,
+                attributeChanges: result.attributeChanges,
+                realWorldQuest: result.realWorldQuest,
+                acquiredTotem: result.acquiredTotem ? {
+                    ...result.acquiredTotem,
+                    id: `totem_${Date.now()}`,
+                    sourceDreamId: dream.id
+                } : undefined
+            };
+
+            // Calculate profile updates
+            const profileUpdates: Partial<SecondLifeProfile> = {
+                attributes: {
+                    lucidity: currentState.profile.attributes.lucidity + (result.attributeChanges.lucidity || 0),
+                    imagination: currentState.profile.attributes.imagination + (result.attributeChanges.imagination || 0),
+                    resilience: currentState.profile.attributes.resilience + (result.attributeChanges.resilience || 0)
+                }
+                // Experience/Level logic can be handled in the component or here. 
+                // For simplicity, we just return attribute deltas and let the UI handler sum them up.
+            };
+
+            return { event, profileUpdates };
+        }
+        throw new Error("No RPG response");
+    } catch (error) {
+        console.error("Second Life evolution failed:", error);
         throw error;
     }
 }
