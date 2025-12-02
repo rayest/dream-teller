@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { DreamEntry } from '../types';
-import { Sparkles, HeartHandshake, Brain, Lightbulb, Tag, Share2, Check, Info, Waves, PlayCircle, StopCircle, Loader2, Palette, Image as ImageIcon, Wand2 } from 'lucide-react';
-import { generateSoundscapeParams, generateDreamImage } from '../services/geminiService';
+import { Sparkles, HeartHandshake, Brain, Lightbulb, Tag, Share2, Check, Info, Waves, PlayCircle, StopCircle, Loader2, Palette, Image as ImageIcon, Wand2, Feather, BookOpen, Scroll, HelpCircle } from 'lucide-react';
+import { generateSoundscapeParams, generateDreamImage, generateCreativeWriting } from '../services/geminiService';
 import { DreamSynthesizer } from '../utils/audioEngine';
 
 interface AnalysisViewProps {
@@ -15,6 +15,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
   const [isGeneratingMusic, setIsGeneratingMusic] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [isGeneratingCreative, setIsGeneratingCreative] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState<string>('超现实主义');
   const [customStyle, setCustomStyle] = useState('');
   
@@ -32,7 +33,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
 
   if (!dream.analysis) return null;
 
-  const { title, summary, interpretation, emotionalState, psychologicalMeaning, guidance, keywords, dominantEmotion, emotionalIntensity } = dream.analysis;
+  const { title, summary, interpretation, emotionalState, psychologicalMeaning, guidance, keywords, dominantEmotion, emotionalIntensity, followUpQuestions } = dream.analysis;
 
   const handleShare = async () => {
     const shareText = `【DreamWeaver 梦境解析】\n\n🌙 ${title}\n\n📜 摘要：\n${summary}\n\n🧠 解析：\n${interpretation}\n\n💡 建议：\n${guidance}\n\n✨ 来自 DreamWeaver 梦境日记`;
@@ -96,6 +97,20 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
         setIsGeneratingImage(false);
     }
   };
+
+  const handleGenerateCreative = async (type: 'story' | 'poem') => {
+      if (!dream.analysis || !onUpdateDream) return;
+      setIsGeneratingCreative(true);
+      try {
+          const result = await generateCreativeWriting(dream.content, dream.analysis, type);
+          onUpdateDream(dream.id, { creativeWriting: result });
+      } catch (error) {
+          console.error(error);
+          alert("创作失败，请稍后再试。");
+      } finally {
+          setIsGeneratingCreative(false);
+      }
+  }
 
   const togglePlayback = () => {
     if (!dream.soundscapeParams) return;
@@ -210,6 +225,30 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        {/* Recall Guide (New Section) */}
+        {followUpQuestions && followUpQuestions.length > 0 && (
+            <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white shadow-sm hover:shadow-md transition-all duration-500 md:col-span-2">
+                <div className="flex items-center gap-3 mb-4 text-sky-500">
+                    <div className="p-2 bg-sky-50 rounded-xl">
+                        <HelpCircle size={24} />
+                    </div>
+                    <h2 className="text-2xl font-hand font-bold text-ink-800">记忆回溯</h2>
+                </div>
+                <div className="bg-sky-50/30 rounded-2xl p-4 border border-sky-100/50">
+                    <p className="text-sm text-ink-500 font-sans mb-3">AI 察觉到梦境中可能隐藏着更多细节。尝试回想以下问题，也许能唤醒更深层的连接：</p>
+                    <ul className="space-y-2">
+                        {followUpQuestions.map((q, i) => (
+                            <li key={i} className="flex items-start gap-2 text-ink-700 font-hand text-lg">
+                                <span className="text-sky-300 mt-1">•</span>
+                                {q}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </div>
+        )}
+
         {/* Interpretation */}
         <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white shadow-sm hover:shadow-md transition-all duration-500 group">
           <div className="flex items-center gap-3 mb-4 text-indigo-400 group-hover:scale-105 transition-transform origin-left">
@@ -280,6 +319,65 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
           </div>
 
           <p className="text-ink-600 leading-relaxed whitespace-pre-line font-sans">{emotionalState}</p>
+        </div>
+
+        {/* Creative Studio (New Section) */}
+        <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white shadow-sm hover:shadow-md transition-all duration-500 group">
+            <div className="flex items-center gap-3 mb-4 text-amber-500 group-hover:scale-105 transition-transform origin-left">
+                <div className="p-2 bg-amber-50 rounded-xl">
+                    <Feather size={24} />
+                </div>
+                <h2 className="text-2xl font-hand font-bold text-ink-800">创意工坊</h2>
+            </div>
+            
+            {!dream.creativeWriting ? (
+                <div className="text-center py-6 bg-amber-50/30 rounded-2xl border border-amber-100/50">
+                    <p className="text-ink-500 font-sans text-sm mb-4 px-4">将零散的梦境碎片，编织成文学作品。</p>
+                    <div className="flex gap-3 justify-center">
+                        <button 
+                            onClick={() => handleGenerateCreative('story')}
+                            disabled={isGeneratingCreative}
+                            className="px-4 py-2 bg-white text-ink-700 border border-amber-200 rounded-xl hover:bg-amber-100 hover:text-amber-800 transition-colors flex items-center gap-2 text-sm font-bold shadow-sm"
+                        >
+                            {isGeneratingCreative ? <Loader2 size={16} className="animate-spin"/> : <BookOpen size={16} />}
+                            编织故事
+                        </button>
+                        <button 
+                            onClick={() => handleGenerateCreative('poem')}
+                            disabled={isGeneratingCreative}
+                            className="px-4 py-2 bg-white text-ink-700 border border-amber-200 rounded-xl hover:bg-amber-100 hover:text-amber-800 transition-colors flex items-center gap-2 text-sm font-bold shadow-sm"
+                        >
+                             {isGeneratingCreative ? <Loader2 size={16} className="animate-spin"/> : <Scroll size={16} />}
+                            谱写诗歌
+                        </button>
+                    </div>
+                </div>
+            ) : (
+                <div className="relative animate-fade-in">
+                    <div className="bg-[#fcfbf7] p-6 rounded-xl border border-stone-200 shadow-inner font-hand relative">
+                        {/* Paper texture effect */}
+                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-b from-black/5 to-transparent"></div>
+                        
+                        <div className="text-center mb-4 pb-4 border-b border-stone-200 border-dashed">
+                             <span className="text-xs text-stone-400 uppercase tracking-widest font-sans font-bold block mb-1">
+                                {dream.creativeWriting.type === 'story' ? 'MICRO FICTION' : 'POETRY'}
+                             </span>
+                             <h3 className="text-2xl text-ink-800 font-bold">{dream.creativeWriting.title}</h3>
+                        </div>
+                        
+                        <div className={`text-ink-700 leading-loose whitespace-pre-line ${dream.creativeWriting.type === 'poem' ? 'text-center' : 'text-justify'}`}>
+                            {dream.creativeWriting.content}
+                        </div>
+
+                        <button 
+                            onClick={() => onUpdateDream && onUpdateDream(dream.id, { creativeWriting: undefined })}
+                            className="mt-6 w-full py-2 text-xs text-stone-400 hover:text-amber-600 font-sans flex items-center justify-center gap-1 transition-colors border-t border-stone-100"
+                        >
+                            <Wand2 size={12} /> 重新创作
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
 
         {/* AI Generative Soundscape */}
@@ -354,7 +452,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ dream, onBack, onUpd
            )}
         </div>
 
-        {/* Dream Gallery (New Section) */}
+        {/* Dream Gallery */}
         <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white shadow-sm hover:shadow-md transition-all duration-500 group md:col-span-2">
             <div className="flex items-center gap-3 mb-4 text-fuchsia-400 group-hover:scale-[1.01] transition-transform origin-left">
                 <div className="p-2 bg-fuchsia-50 rounded-xl">

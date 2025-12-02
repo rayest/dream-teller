@@ -8,6 +8,7 @@ export interface DreamAnalysis {
   keywords: string[];
   dominantEmotion?: string;
   emotionalIntensity?: number;
+  followUpQuestions?: string[]; // Questions to guide further recall
 }
 
 export interface MusicRecommendation {
@@ -24,6 +25,12 @@ export interface SoundscapeParams {
   moodDescription: string;
 }
 
+export interface CreativeWriting {
+  type: 'story' | 'poem';
+  title: string;
+  content: string;
+}
+
 export interface DreamEntry {
   id: string;
   date: string;
@@ -34,6 +41,7 @@ export interface DreamEntry {
   soundscapeParams?: SoundscapeParams;
   generatedImage?: string; // Base64 data URI
   artStyle?: string;
+  creativeWriting?: CreativeWriting;
 }
 
 export interface UserState {
@@ -41,4 +49,23 @@ export interface UserState {
   currentDreamInput: string;
   isAnalyzing: boolean;
   selectedDreamId: string | null;
+}
+
+// --- Tarot Types ---
+
+export interface TarotCard {
+  id: number;
+  name: string;
+  name_cn: string;
+  isReversed: boolean;
+  meaning_upright: string;
+  meaning_reversed: string;
+}
+
+export interface TarotReadingResult {
+  overview: string;
+  past: string;
+  present: string;
+  future: string;
+  guidance: string;
 }

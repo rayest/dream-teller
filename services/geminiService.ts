@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { DreamAnalysis, MusicRecommendation, SoundscapeParams } from "../types";
+import { DreamAnalysis, MusicRecommendation, SoundscapeParams, CreativeWriting, TarotCard, TarotReadingResult } from "../types";
 
 const apiKey = process.env.API_KEY || '';
 const ai = new GoogleGenAI({ apiKey });
@@ -14,6 +14,9 @@ export const analyzeDream = async (dreamText: string): Promise<DreamAnalysis> =>
   const systemInstruction = `
     你是一位资深的心理咨询师和梦境解析专家，擅长荣格心理学和情绪疗愈。
     你的任务是根据用户描述的梦境，提供深度的心理分析和情绪调节建议。
+    
+    此外，你需要敏锐地察觉梦境描述中模糊或缺失的关键细节，并提出引导性问题帮助用户回忆。
+    
     请以温暖、包容、富有洞察力的语气回答。
     
     输出必须是严格的 JSON 格式。
@@ -67,8 +70,13 @@ export const analyzeDream = async (dreamText: string): Promise<DreamAnalysis> =>
               type: Type.INTEGER,
               description: "情绪强度，1-10之间的整数",
             },
+            followUpQuestions: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+              description: "提出3个引导性问题，引导用户回忆梦中模糊的细节（如颜色、面孔、声音等），以激发更深层的潜意识连接。",
+            }
           },
-          required: ["title", "summary", "interpretation", "emotionalState", "psychologicalMeaning", "guidance", "keywords", "dominantEmotion", "emotionalIntensity"],
+          required: ["title", "summary", "interpretation", "emotionalState", "psychologicalMeaning", "guidance", "keywords", "dominantEmotion", "emotionalIntensity", "followUpQuestions"],
         },
       },
     });
@@ -243,3 +251,111 @@ export const generateDreamImage = async (analysis: DreamAnalysis, style: string)
     throw error;
   }
 };
+
+// --- Creative Writing Function ---
+
+export const generateCreativeWriting = async (dream: string, analysis: DreamAnalysis, type: 'story' | 'poem'): Promise<CreativeWriting> => {
+    if (!apiKey) throw new Error("API Key is missing.");
+
+    const prompt = `
+      将用户的梦境改写为一篇${type === 'story' ? '微小说（Short Story）' : '现代诗（Poem）'}。
+      
+      原始梦境: ${dream}
+      梦境解析: ${analysis.interpretation}
+      情绪基调: ${analysis.emotionalState}
+
+      要求：
+      1. 保持梦境的超现实感和核心意象。
+      2. 语言优美，富有文学性。
+      3. ${type === 'story' ? '以第一人称叙述，字数在300字左右，增强沉浸感。' : '意象朦胧，分行排列，字数不限。'}
+      4. 输出JSON格式，包含 title (作品标题) 和 content (正文)。
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        title: { type: Type.STRING },
+                        content: { type: Type.STRING },
+                    },
+                    required: ['title', 'content']
+                }
+            }
+        });
+
+        if (response.text) {
+            const result = JSON.parse(response.text);
+            return {
+                type,
+                title: result.title,
+                content: result.content
+            };
+        }
+        throw new Error("No creative writing response");
+    } catch (error) {
+        console.error("Creative writing generation failed:", error);
+        throw error;
+    }
+}
+
+// --- Tarot Function ---
+
+export const interpretTarotReading = async (question: string, cards: TarotCard[]): Promise<TarotReadingResult> => {
+    if (!apiKey) throw new Error("API Key is missing.");
+
+    // Format cards for the prompt
+    const cardDescriptions = cards.map((card, index) => {
+        const position = index === 0 ? "过去 (Past)" : index === 1 ? "现在 (Present)" : "未来 (Future)";
+        const orientation = card.isReversed ? "逆位 (Reversed)" : "正位 (Upright)";
+        return `${position}: ${card.name_cn} (${card.name}) - ${orientation}`;
+    }).join('\n');
+
+    const prompt = `
+      你是一位精通荣格心理学和神秘学的塔罗牌解读大师。
+      用户提出了一个问题（或者在冥想中）："${question || '（用户未明确问题，请针对当下的生命状态进行解读）'}"
+      
+      抽出的牌阵（时间流牌阵）：
+      ${cardDescriptions}
+
+      请进行深度解读：
+      1. Overview: 综合三张牌的能量流动，给出整体基调。
+      2. Past/Present/Future: 分别解读每一张牌在对应位置的含义，结合正逆位。
+      3. Guidance: 给出富有哲理和启发性的行动建议或心理指引。
+
+      请输出 JSON 格式。
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        overview: { type: Type.STRING },
+                        past: { type: Type.STRING },
+                        present: { type: Type.STRING },
+                        future: { type: Type.STRING },
+                        guidance: { type: Type.STRING },
+                    },
+                    required: ['overview', 'past', 'present', 'future', 'guidance']
+                }
+            }
+        });
+
+        if (response.text) {
+            return JSON.parse(response.text) as TarotReadingResult;
+        }
+        throw new Error("No tarot interpretation response");
+    } catch (error) {
+        console.error("Tarot interpretation failed:", error);
+        throw error;
+    }
+}

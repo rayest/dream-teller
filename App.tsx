@@ -4,7 +4,9 @@ import { analyzeDream } from './services/geminiService';
 import { DreamCard } from './components/DreamCard';
 import { AnalysisView } from './components/AnalysisView';
 import { DashboardView } from './components/DashboardView';
-import { PlusCircle, Loader2, Sparkles, History, Menu, X, Brain, HeartHandshake, Lightbulb, Feather, BarChart3, BookHeart, Quote } from 'lucide-react';
+import { LibraryView } from './components/LibraryView';
+import { TarotView } from './components/TarotView';
+import { PlusCircle, Loader2, Sparkles, History, Menu, X, Brain, HeartHandshake, Lightbulb, Feather, BarChart3, BookHeart, Quote, Compass, Eye } from 'lucide-react';
 
 const STORAGE_KEY = 'dreamweaver_data';
 
@@ -15,7 +17,7 @@ const App: React.FC = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedDreamId, setSelectedDreamId] = useState<string | null>(null);
   const [showHistoryMobile, setShowHistoryMobile] = useState(false);
-  const [viewMode, setViewMode] = useState<'entry' | 'dashboard'>('entry');
+  const [viewMode, setViewMode] = useState<'entry' | 'dashboard' | 'library' | 'tarot'>('entry');
 
   // Load from local storage on mount
   useEffect(() => {
@@ -120,20 +122,20 @@ const App: React.FC = () => {
             <h1 className="font-hand font-bold text-3xl text-ink-800 tracking-wide">DreamWeaver</h1>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 mb-8">
+          <div className="grid grid-cols-4 gap-1 mb-8">
             <button 
                 onClick={() => {
                 setSelectedDreamId(null);
                 setViewMode('entry');
                 setShowHistoryMobile(false);
                 }}
-                className={`flex flex-col items-center justify-center gap-1 py-3 px-2 rounded-2xl transition-all border
+                className={`flex flex-col items-center justify-center gap-1 py-3 px-1 rounded-2xl transition-all border
                 ${viewMode === 'entry' && !selectedDreamId 
                     ? 'bg-white shadow-md border-lavender-100 text-lavender-600' 
                     : 'bg-white/40 border-transparent hover:bg-white/60 text-ink-500'}`}
             >
                 <PlusCircle size={20} />
-                <span className="font-sans text-xs font-bold">记梦</span>
+                <span className="font-sans text-[10px] font-bold">记梦</span>
             </button>
             <button 
                 onClick={() => {
@@ -141,13 +143,41 @@ const App: React.FC = () => {
                 setViewMode('dashboard');
                 setShowHistoryMobile(false);
                 }}
-                className={`flex flex-col items-center justify-center gap-1 py-3 px-2 rounded-2xl transition-all border
+                className={`flex flex-col items-center justify-center gap-1 py-3 px-1 rounded-2xl transition-all border
                 ${viewMode === 'dashboard' 
                     ? 'bg-white shadow-md border-lavender-100 text-lavender-600' 
                     : 'bg-white/40 border-transparent hover:bg-white/60 text-ink-500'}`}
             >
                 <BarChart3 size={20} />
-                <span className="font-sans text-xs font-bold">洞察</span>
+                <span className="font-sans text-[10px] font-bold">洞察</span>
+            </button>
+            <button 
+                onClick={() => {
+                setSelectedDreamId(null);
+                setViewMode('library');
+                setShowHistoryMobile(false);
+                }}
+                className={`flex flex-col items-center justify-center gap-1 py-3 px-1 rounded-2xl transition-all border
+                ${viewMode === 'library' 
+                    ? 'bg-white shadow-md border-lavender-100 text-lavender-600' 
+                    : 'bg-white/40 border-transparent hover:bg-white/60 text-ink-500'}`}
+            >
+                <Compass size={20} />
+                <span className="font-sans text-[10px] font-bold">灵感</span>
+            </button>
+            <button 
+                onClick={() => {
+                setSelectedDreamId(null);
+                setViewMode('tarot');
+                setShowHistoryMobile(false);
+                }}
+                className={`flex flex-col items-center justify-center gap-1 py-3 px-1 rounded-2xl transition-all border
+                ${viewMode === 'tarot' 
+                    ? 'bg-white shadow-md border-lavender-100 text-lavender-600' 
+                    : 'bg-white/40 border-transparent hover:bg-white/60 text-ink-500'}`}
+            >
+                <Eye size={20} />
+                <span className="font-sans text-[10px] font-bold">塔罗</span>
             </button>
           </div>
 
@@ -191,6 +221,10 @@ const App: React.FC = () => {
           
           {viewMode === 'dashboard' ? (
              <DashboardView dreams={dreams} />
+          ) : viewMode === 'library' ? (
+             <LibraryView />
+          ) : viewMode === 'tarot' ? (
+             <TarotView />
           ) : selectedDreamId && currentDream ? (
             <AnalysisView 
               dream={currentDream} 
